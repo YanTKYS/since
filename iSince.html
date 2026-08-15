@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iSince - 前回いつやったか記録</title>
+<style>
+  :root{
+    --bg:#f5f5f3;
+    --surface:#ffffff;
+    --border:#e2e1dc;
+    --border-strong:#cfcec7;
+    --text:#2a2a26;
+    --text-muted:#7a7972;
+    --text-faint:#a3a29a;
+    --accent:#2f6f5e;
+    --accent-soft:#e6efec;
+    --warn:#9a5b23;
+    --warn-soft:#f5ece0;
+    --danger:#b3432f;
+    --danger-soft:#fbeae6;
+    --radius:12px;
+    --radius-sm:8px;
+    --shadow:0 1px 2px rgba(0,0,0,0.04), 0 1px 8px rgba(0,0,0,0.03);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Hiragino Sans,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
+    line-height:1.5;
+    min-height:100vh;
+  }
+  .app{
+    max-width:1080px;
+    margin:0 auto;
+    padding:20px 20px 80px;
+  }
+
+  /* ---------- Toolbar ---------- */
+  .toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+  }
+  .brand{
+    font-size:17px;
+    font-weight:700;
+    letter-spacing:0.01em;
+    color:var(--text);
+  }
+  .toolbar-controls{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  select, input, textarea, button{
+    font-family:inherit;
+    font-size:14px;
+  }
+  select{
+    padding:7px 10px;
+    border-radius:var(--radius-sm);
+    border:1px solid var(--border-strong);
+    background:var(--surface);
+    color:var(--text);
+  }
+  .btn{
+    padding:8px 14px;
+    border-radius:var(--radius-sm);
+    border:1px solid var(--border-strong);
+    background:var(--surface);
+    color:var(--text);
+    cursor:pointer;
+  }
+  .btn:hover{ border-color:var(--text-faint); }
+  .btn-primary{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+    font-weight:600;
+  }
+  .btn-primary:hover{ background:#265d4e; }
+  .btn-text{
+    background:none;
+    border:none;
+    color:var(--text-muted);
+    cursor:pointer;
+    padding:6px 8px;
+    border-radius:var(--radius-sm);
+  }
+  .btn-text:hover{ background:var(--border); color:var(--text); }
+  .btn-danger-text{
+    background:none;
+    border:none;
+    color:var(--danger);
+    cursor:pointer;
+    padding:6px 8px;
+    border-radius:var(--radius-sm);
+  }
+  .btn-danger-text:hover{ background:var(--danger-soft); }
+
+  /* ---------- Empty state ---------- */
+  .empty-state{
+    text-align:center;
+    padding:80px 20px;
+    color:var(--text-muted);
+  }
+  .empty-state h2{
+    font-size:16px;
+    color:var(--text);
+    margin:0 0 12px;
+  }
+  .empty-state p{
+    margin:0 0 24px;
+    white-space:pre-line;
+    font-size:14px;
+  }
+
+  /* ---------- Card grid ---------- */
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));
+    gap:16px;
+  }
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    cursor:pointer;
+  }
+  .card:hover{ border-color:var(--border-strong); }
+  .card-name{
+    font-size:15px;
+    font-weight:700;
+    margin:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .card-main{
+    text-align:center;
+    padding:10px 0 4px;
+  }
+  .elapsed-num{
+    font-size:44px;
+    font-weight:800;
+    color:var(--accent);
+    line-height:1;
+    letter-spacing:-0.01em;
+  }
+  .elapsed-num .unit{
+    font-size:20px;
+    font-weight:700;
+    margin-left:2px;
+  }
+  .elapsed-label{
+    font-size:12px;
+    color:var(--text-muted);
+    margin-top:4px;
+  }
+  .elapsed-empty{
+    font-size:15px;
+    color:var(--text-faint);
+    padding:14px 0;
+  }
+  .compare-text{
+    font-size:12px;
+    color:var(--warn);
+    background:var(--warn-soft);
+    display:inline-block;
+    padding:3px 9px;
+    border-radius:100px;
+    margin-top:8px;
+  }
+  .card-meta{
+    font-size:12.5px;
+    color:var(--text-muted);
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .card-memo{
+    font-size:12.5px;
+    color:var(--text-faint);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    border-top:1px solid var(--border);
+    padding-top:10px;
+  }
+  .record-btn{
+    margin-top:2px;
+    width:100%;
+    padding:9px 10px;
+    border-radius:var(--radius-sm);
+    border:1px solid var(--accent);
+    background:var(--accent-soft);
+    color:var(--accent);
+    font-weight:600;
+    cursor:pointer;
+  }
+  .record-btn:hover{ background:#d9e9e3; }
+
+  /* ---------- Detail view ---------- */
+  .detail-header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+  }
+  .detail-title-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .detail-title{
+    font-size:20px;
+    font-weight:700;
+    margin:0;
+  }
+  .back-link{
+    background:none;
+    border:none;
+    color:var(--text-muted);
+    cursor:pointer;
+    font-size:13px;
+    padding:4px 0;
+    margin-bottom:10px;
+  }
+  .back-link:hover{ color:var(--text); }
+
+  .stat-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(120px,1fr));
+    gap:1px;
+    background:var(--border);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    overflow:hidden;
+    margin-bottom:24px;
+  }
+  .stat-box{
+    background:var(--surface);
+    padding:14px 16px;
+  }
+  .stat-box .stat-label{
+    font-size:11.5px;
+    color:var(--text-muted);
+    margin-bottom:4px;
+  }
+  .stat-box .stat-value{
+    font-size:19px;
+    font-weight:700;
+  }
+  .stat-box.emphasis .stat-value{ color:var(--accent); }
+  .stat-note{
+    font-size:12.5px;
+    color:var(--text-faint);
+    margin:-12px 0 24px;
+  }
+
+  .section-label{
+    font-size:13px;
+    font-weight:700;
+    color:var(--text-muted);
+    margin:0 0 12px;
+  }
+
+  /* ---------- Timeline ---------- */
+  .timeline{
+    margin-bottom:8px;
+  }
+  .tl-entry{
+    display:flex;
+    gap:14px;
+  }
+  .tl-rail{
+    width:16px;
+    flex-shrink:0;
+    display:flex;
+    justify-content:center;
+  }
+  .tl-dot{
+    width:9px;
+    height:9px;
+    border-radius:50%;
+    background:var(--accent);
+    margin-top:6px;
+  }
+  .tl-content{
+    flex:1;
+    padding:2px 0 16px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .tl-date{
+    font-size:14px;
+    font-weight:700;
+  }
+  .tl-memo{
+    font-size:13px;
+    color:var(--text-muted);
+    margin-top:3px;
+    white-space:pre-wrap;
+    word-break:break-word;
+  }
+  .tl-actions{
+    display:flex;
+    gap:2px;
+    flex-shrink:0;
+  }
+  .tl-gap{
+    display:flex;
+    gap:14px;
+  }
+  .tl-gap .tl-rail{
+    position:relative;
+  }
+  .tl-gap .tl-line{
+    position:absolute;
+    top:0;
+    bottom:0;
+    left:50%;
+    width:2px;
+    background:var(--border-strong);
+    transform:translateX(-50%);
+  }
+  .tl-gap-text{
+    font-size:12.5px;
+    color:var(--text-faint);
+    padding:6px 0;
+  }
+  .tl-first-note{
+    font-size:12px;
+    color:var(--text-faint);
+    padding:0 0 4px 30px;
+  }
+
+  .danger-zone{
+    margin-top:36px;
+    padding-top:16px;
+    border-top:1px solid var(--border);
+  }
+
+  /* ---------- Dialogs ---------- */
+  dialog{
+    border:none;
+    border-radius:var(--radius);
+    padding:0;
+    box-shadow:0 8px 30px rgba(0,0,0,0.15);
+    width:min(420px, calc(100vw - 40px));
+  }
+  dialog::backdrop{
+    background:rgba(20,20,18,0.35);
+  }
+  .dialog-body{
+    padding:22px;
+  }
+  .dialog-body h3{
+    margin:0 0 16px;
+    font-size:16px;
+  }
+  .field{
+    margin-bottom:14px;
+  }
+  .field label{
+    display:block;
+    font-size:12.5px;
+    color:var(--text-muted);
+    margin-bottom:5px;
+  }
+  .field input[type="text"],
+  .field input[type="date"],
+  .field textarea{
+    width:100%;
+    padding:9px 10px;
+    border:1px solid var(--border-strong);
+    border-radius:var(--radius-sm);
+    background:var(--surface);
+    color:var(--text);
+  }
+  .field textarea{
+    resize:vertical;
+    min-height:60px;
+  }
+  .dialog-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+    margin-top:18px;
+  }
+
+  @media (max-width:520px){
+    .elapsed-num{ font-size:38px; }
+    .toolbar{ align-items:flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="toolbar" id="toolbar"></div>
+  <div id="view"></div>
+</div>
+
+<dialog id="itemDialog">
+  <form class="dialog-body" id="itemForm">
+    <h3 id="itemDialogTitle">項目を追加</h3>
+    <div class="field">
+      <label for="itemNameInput">項目名</label>
+      <input type="text" id="itemNameInput" required maxlength="60" placeholder="例: 散髪">
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn" data-action="close-item-dialog">キャンセル</button>
+      <button type="submit" class="btn btn-primary">保存</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="recordDialog">
+  <form class="dialog-body" id="recordForm">
+    <h3 id="recordDialogTitle">今回を記録</h3>
+    <div class="field">
+      <label for="recordDateInput">実施日</label>
+      <input type="date" id="recordDateInput" required>
+    </div>
+    <div class="field">
+      <label for="recordMemoInput">簡易メモ（任意）</label>
+      <textarea id="recordMemoInput" maxlength="200" placeholder="気づいたことなど"></textarea>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn" data-action="close-record-dialog">キャンセル</button>
+      <button type="submit" class="btn btn-primary">保存</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "isince.data.v1";
+
+  /* ---------------- Data layer ---------------- */
+
+  function uid(){
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "id-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+  }
+
+  function loadData(){
+    var raw;
+    try{
+      raw = localStorage.getItem(STORAGE_KEY);
+    }catch(e){
+      raw = null;
+    }
+    if (!raw) return { version: 1, items: [] };
+    try{
+      var parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.items)){
+        return { version: 1, items: [] };
+      }
+      parsed.version = parsed.version || 1;
+      return parsed;
+    }catch(e){
+      return { version: 1, items: [] };
+    }
+  }
+
+  function saveData(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+    }catch(e){
+      console.error("failed to save data", e);
+    }
+  }
+
+  var db = loadData();
+
+  var state = {
+    view: "list",          // "list" | "detail"
+    currentItemId: null,
+    sortMode: "elapsed_desc" // "elapsed_desc" | "recent_desc" | "name_asc"
+  };
+
+  var pendingRecordDialog = { itemId: null, recordId: null };
+  var pendingItemDialog = { mode: "add", itemId: null };
+
+  /* ---------------- Date helpers ---------------- */
+
+  function todayStr(){
+    var d = new Date();
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, "0");
+    var day = String(d.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + day;
+  }
+
+  function toUTCms(dateStr){
+    var parts = dateStr.split("-");
+    return Date.UTC(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+  }
+
+  function daysBetween(fromStr, toStr){
+    return Math.round((toUTCms(toStr) - toUTCms(fromStr)) / 86400000);
+  }
+
+  function formatDateDisplay(dateStr){
+    var parts = dateStr.split("-");
+    return parts[0] + "/" + parts[1] + "/" + parts[2];
+  }
+
+  function formatDays(n){
+    if (Number.isInteger(n)) return n + "日";
+    return (Math.round(n * 10) / 10) + "日";
+  }
+
+  /* ---------------- Stats ---------------- */
+
+  function computeStats(item){
+    var records = item.records.slice().sort(function(a, b){
+      return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
+    });
+    if (records.length === 0){
+      return { hasRecords: false, records: records };
+    }
+    var last = records[records.length - 1];
+    var elapsedDays = daysBetween(last.date, todayStr());
+
+    var intervals = [];
+    for (var i = 1; i < records.length; i++){
+      intervals.push(daysBetween(records[i - 1].date, records[i].date));
+    }
+
+    var avg = null, median = null, min = null, max = null;
+    if (intervals.length > 0){
+      var sum = intervals.reduce(function(a, b){ return a + b; }, 0);
+      avg = sum / intervals.length;
+
+      var sorted = intervals.slice().sort(function(a, b){ return a - b; });
+      var mid = Math.floor(sorted.length / 2);
+      median = sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+
+      min = Math.min.apply(null, intervals);
+      max = Math.max.apply(null, intervals);
+    }
+
+    return {
+      hasRecords: true,
+      records: records,
+      lastDate: last.date,
+      lastMemo: last.memo,
+      elapsedDays: elapsedDays,
+      intervalCount: intervals.length,
+      avg: avg,
+      median: median,
+      min: min,
+      max: max
+    };
+  }
+
+  /* ---------------- Rendering: toolbar ---------------- */
+
+  function renderToolbar(){
+    var toolbar = document.getElementById("toolbar");
+    if (state.view === "detail"){
+      toolbar.innerHTML = "";
+      return;
+    }
+    var hasItems = db.items.length > 0;
+    var html = "";
+    html += '<div class="brand">iSince</div>';
+    html += '<div class="toolbar-controls">';
+    if (hasItems){
+      html += '<select id="sortSelect">';
+      html += '<option value="elapsed_desc"' + (state.sortMode === "elapsed_desc" ? " selected" : "") + '>経過日数が長い順</option>';
+      html += '<option value="recent_desc"' + (state.sortMode === "recent_desc" ? " selected" : "") + '>最近記録した順</option>';
+      html += '<option value="name_asc"' + (state.sortMode === "name_asc" ? " selected" : "") + '>名前順</option>';
+      html += '</select>';
+    }
+    html += '<button class="btn btn-primary" data-action="add-item">＋ 項目を追加</button>';
+    html += '</div>';
+    toolbar.innerHTML = html;
+  }
+
+  /* ---------------- Rendering: list view ---------------- */
+
+  function sortedItems(){
+    var items = db.items.slice();
+    var todays = todayStr();
+
+    function elapsedOf(item){
+      var s = computeStats(item);
+      return s.hasRecords ? s.elapsedDays : null;
+    }
+    function lastDateOf(item){
+      var s = computeStats(item);
+      return s.hasRecords ? s.lastDate : null;
+    }
+
+    if (state.sortMode === "name_asc"){
+      items.sort(function(a, b){ return a.name.localeCompare(b.name, "ja"); });
+    } else if (state.sortMode === "recent_desc"){
+      items.sort(function(a, b){
+        var da = lastDateOf(a), db_ = lastDateOf(b);
+        if (da === null && db_ === null) return a.name.localeCompare(b.name, "ja");
+        if (da === null) return 1;
+        if (db_ === null) return -1;
+        return da < db_ ? 1 : da > db_ ? -1 : 0;
+      });
+    } else {
+      items.sort(function(a, b){
+        var ea = elapsedOf(a), eb = elapsedOf(b);
+        if (ea === null && eb === null) return a.name.localeCompare(b.name, "ja");
+        if (ea === null) return 1;
+        if (eb === null) return -1;
+        return eb - ea;
+      });
+    }
+    return items;
+  }
+
+  function renderCard(item){
+    var stats = computeStats(item);
+    var html = '<article class="card" data-action="open-detail" data-id="' + item.id + '">';
+    html += '<h3 class="card-name">' + escapeHtml(item.name) + '</h3>';
+
+    html += '<div class="card-main">';
+    if (!stats.hasRecords){
+      html += '<div class="elapsed-empty">記録がありません</div>';
+    } else {
+      html += '<div class="elapsed-num">' + stats.elapsedDays + '<span class="unit">日</span></div>';
+      html += '<div class="elapsed-label">経過</div>';
+      if (stats.avg !== null){
+        var diff = Math.round(stats.elapsedDays - stats.avg);
+        if (diff > 0){
+          html += '<div class="compare-text">いつもより' + diff + '日長め</div>';
+        }
+      }
+    }
+    html += '</div>';
+
+    if (stats.hasRecords){
+      html += '<div class="card-meta">';
+      html += '<div>前回　' + formatDateDisplay(stats.lastDate) + '</div>';
+      if (stats.avg !== null){
+        html += '<div>通常　約' + Math.round(stats.avg) + '日間隔</div>';
+      }
+      html += '</div>';
+      if (stats.lastMemo){
+        html += '<div class="card-memo">' + escapeHtml(stats.lastMemo) + '</div>';
+      }
+    }
+
+    html += '<button class="record-btn" data-action="quick-record" data-id="' + item.id + '">＋ 今回を記録</button>';
+    html += '</article>';
+    return html;
+  }
+
+  function renderList(){
+    var view = document.getElementById("view");
+    if (db.items.length === 0){
+      view.innerHTML =
+        '<div class="empty-state">' +
+        '<h2>まだ記録項目がありません</h2>' +
+        '<p>「散髪」「洗車」など、\n前回いつ行ったか確認したいものを登録できます。</p>' +
+        '<button class="btn btn-primary" data-action="add-item">最初の項目を追加</button>' +
+        '</div>';
+      return;
+    }
+    var items = sortedItems();
+    var html = '<div class="cards">';
+    items.forEach(function(item){
+      html += renderCard(item);
+    });
+    html += '</div>';
+    view.innerHTML = html;
+  }
+
+  /* ---------------- Rendering: detail view ---------------- */
+
+  function renderTimeline(stats){
+    if (!stats.hasRecords) return "";
+    var records = stats.records.slice().reverse(); // newest first
+    var html = '<div class="timeline">';
+    records.forEach(function(rec, idx){
+      html += '<div class="tl-entry">';
+      html += '<div class="tl-rail"><span class="tl-dot"></span></div>';
+      html += '<div class="tl-content">';
+      html += '<div><div class="tl-date">' + formatDateDisplay(rec.date) + '</div>';
+      if (rec.memo){
+        html += '<div class="tl-memo">' + escapeHtml(rec.memo) + '</div>';
+      }
+      html += '</div>';
+      html += '<div class="tl-actions">';
+      html += '<button class="btn-text" data-action="edit-record" data-id="' + state.currentItemId + '" data-record-id="' + rec.id + '">編集</button>';
+      html += '<button class="btn-danger-text" data-action="delete-record" data-id="' + state.currentItemId + '" data-record-id="' + rec.id + '">削除</button>';
+      html += '</div>';
+      html += '</div>'; // tl-content
+      html += '</div>'; // tl-entry
+
+      var isLast = idx === records.length - 1;
+      if (!isLast){
+        var older = records[idx + 1];
+        var gap = daysBetween(older.date, rec.date);
+        html += '<div class="tl-gap">';
+        html += '<div class="tl-rail"><span class="tl-line"></span></div>';
+        html += '<div class="tl-gap-text">' + formatDays(gap) + '</div>';
+        html += '</div>';
+      }
+    });
+    html += '</div>';
+    return html;
+  }
+
+  function renderDetail(){
+    var view = document.getElementById("view");
+    var item = db.items.find(function(i){ return i.id === state.currentItemId; });
+    if (!item){
+      state.view = "list";
+      renderApp();
+      return;
+    }
+    var stats = computeStats(item);
+
+    var html = '<button class="back-link" data-action="back">← 一覧に戻る</button>';
+    html += '<div class="detail-header">';
+    html += '<div class="detail-title-row">';
+    html += '<h2 class="detail-title">' + escapeHtml(item.name) + '</h2>';
+    html += '<button class="btn-text" data-action="edit-item" data-id="' + item.id + '">項目名を編集</button>';
+    html += '</div>';
+    html += '<button class="btn btn-primary" data-action="quick-record" data-id="' + item.id + '">＋ 今回を記録</button>';
+    html += '</div>';
+
+    if (!stats.hasRecords){
+      html += '<div class="empty-state" style="padding:60px 20px;">';
+      html += '<h2>まだ記録がありません</h2>';
+      html += '<p>「今回を記録」から最初の記録を追加してください。</p>';
+      html += '</div>';
+    } else {
+      html += '<div class="stat-grid">';
+      html += statBox("前回実施日", formatDateDisplay(stats.lastDate), false);
+      html += statBox("経過日数", stats.elapsedDays + "日", true);
+      if (stats.avg !== null){
+        html += statBox("平均間隔", formatDays(Math.round(stats.avg * 10) / 10), false);
+        html += statBox("中央値", formatDays(stats.median), false);
+        html += statBox("最短間隔", formatDays(stats.min), false);
+        html += statBox("最長間隔", formatDays(stats.max), false);
+      }
+      html += '</div>';
+
+      if (stats.avg !== null){
+        var diff = Math.round(stats.elapsedDays - stats.avg);
+        var compareText = "";
+        if (diff > 0){
+          compareText = "いつもの間隔：約" + Math.round(stats.avg) + "日 ／ いつもより" + diff + "日長め";
+        } else if (diff < 0){
+          compareText = "いつもの間隔：約" + Math.round(stats.avg) + "日 ／ まだ通常間隔内";
+        } else {
+          compareText = "いつもの間隔：約" + Math.round(stats.avg) + "日";
+        }
+        html += '<p class="stat-note">' + escapeHtml(compareText) + '</p>';
+      } else {
+        html += '<p class="stat-note">記録が2件以上になると、間隔の統計が表示されます。</p>';
+      }
+
+      html += '<h3 class="section-label">履歴</h3>';
+      html += renderTimeline(stats);
+    }
+
+    html += '<div class="danger-zone">';
+    html += '<button class="btn-danger-text" data-action="delete-item" data-id="' + item.id + '">この項目を削除</button>';
+    html += '</div>';
+
+    view.innerHTML = html;
+  }
+
+  function statBox(label, value, emphasis){
+    return '<div class="stat-box' + (emphasis ? ' emphasis' : '') + '"><div class="stat-label">' + label + '</div><div class="stat-value">' + value + '</div></div>';
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, function(ch){
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
+    });
+  }
+
+  /* ---------------- Master render ---------------- */
+
+  function renderApp(){
+    renderToolbar();
+    if (state.view === "detail"){
+      renderDetail();
+    } else {
+      renderList();
+    }
+  }
+
+  /* ---------------- Dialog helpers ---------------- */
+
+  function openItemDialog(mode, item){
+    pendingItemDialog.mode = mode;
+    pendingItemDialog.itemId = item ? item.id : null;
+    document.getElementById("itemDialogTitle").textContent = mode === "edit" ? "項目名を編集" : "項目を追加";
+    document.getElementById("itemNameInput").value = item ? item.name : "";
+    document.getElementById("itemDialog").showModal();
+    document.getElementById("itemNameInput").focus();
+  }
+
+  function openRecordDialog(itemId, record){
+    pendingRecordDialog.itemId = itemId;
+    pendingRecordDialog.recordId = record ? record.id : null;
+    document.getElementById("recordDialogTitle").textContent = record ? "記録を編集" : "今回を記録";
+    document.getElementById("recordDateInput").value = record ? record.date : todayStr();
+    document.getElementById("recordMemoInput").value = record ? (record.memo || "") : "";
+    document.getElementById("recordDialog").showModal();
+    document.getElementById("recordDateInput").focus();
+  }
+
+  /* ---------------- Event handling ---------------- */
+
+  document.getElementById("app").addEventListener("click", function(e){
+    var el = e.target.closest("[data-action]");
+    if (!el) return;
+    var action = el.getAttribute("data-action");
+    var id = el.getAttribute("data-id");
+
+    if (action === "add-item"){
+      openItemDialog("add", null);
+    } else if (action === "open-detail"){
+      state.view = "detail";
+      state.currentItemId = id;
+      renderApp();
+    } else if (action === "back"){
+      state.view = "list";
+      state.currentItemId = null;
+      renderApp();
+    } else if (action === "quick-record"){
+      e.stopPropagation();
+      openRecordDialog(id, null);
+    } else if (action === "edit-item"){
+      e.stopPropagation();
+      var item = db.items.find(function(i){ return i.id === id; });
+      if (item) openItemDialog("edit", item);
+    } else if (action === "delete-item"){
+      e.stopPropagation();
+      var target = db.items.find(function(i){ return i.id === id; });
+      if (!target) return;
+      var count = target.records.length;
+      var msg = "「" + target.name + "」を削除します。";
+      if (count > 0) msg += "記録" + count + "件もすべて削除されます。";
+      msg += "\nこの操作は取り消せません。よろしいですか？";
+      if (window.confirm(msg)){
+        db.items = db.items.filter(function(i){ return i.id !== id; });
+        saveData();
+        state.view = "list";
+        state.currentItemId = null;
+        renderApp();
+      }
+    } else if (action === "edit-record"){
+      e.stopPropagation();
+      var recId = el.getAttribute("data-record-id");
+      var owner = db.items.find(function(i){ return i.id === id; });
+      if (!owner) return;
+      var rec = owner.records.find(function(r){ return r.id === recId; });
+      if (rec) openRecordDialog(id, rec);
+    } else if (action === "delete-record"){
+      e.stopPropagation();
+      var recId2 = el.getAttribute("data-record-id");
+      var owner2 = db.items.find(function(i){ return i.id === id; });
+      if (!owner2) return;
+      if (window.confirm("この記録を削除します。よろしいですか？")){
+        owner2.records = owner2.records.filter(function(r){ return r.id !== recId2; });
+        saveData();
+        renderApp();
+      }
+    }
+  });
+
+  document.getElementById("app").addEventListener("change", function(e){
+    if (e.target.id === "sortSelect"){
+      state.sortMode = e.target.value;
+      renderApp();
+    }
+  });
+
+  document.getElementById("itemForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var name = document.getElementById("itemNameInput").value.trim();
+    if (!name) return;
+    if (pendingItemDialog.mode === "edit" && pendingItemDialog.itemId){
+      var item = db.items.find(function(i){ return i.id === pendingItemDialog.itemId; });
+      if (item) item.name = name;
+    } else {
+      db.items.push({ id: uid(), name: name, records: [] });
+    }
+    saveData();
+    document.getElementById("itemDialog").close();
+    renderApp();
+  });
+
+  document.getElementById("recordForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var date = document.getElementById("recordDateInput").value;
+    var memo = document.getElementById("recordMemoInput").value.trim();
+    if (!date) return;
+    var item = db.items.find(function(i){ return i.id === pendingRecordDialog.itemId; });
+    if (!item) return;
+    if (pendingRecordDialog.recordId){
+      var rec = item.records.find(function(r){ return r.id === pendingRecordDialog.recordId; });
+      if (rec){ rec.date = date; rec.memo = memo; }
+    } else {
+      item.records.push({ id: uid(), date: date, memo: memo });
+    }
+    saveData();
+    document.getElementById("recordDialog").close();
+    renderApp();
+  });
+
+  document.querySelectorAll('[data-action="close-item-dialog"]').forEach(function(btn){
+    btn.addEventListener("click", function(){ document.getElementById("itemDialog").close(); });
+  });
+  document.querySelectorAll('[data-action="close-record-dialog"]').forEach(function(btn){
+    btn.addEventListener("click", function(){ document.getElementById("recordDialog").close(); });
+  });
+
+  /* ---------------- Init ---------------- */
+
+  renderApp();
+})();
+</script>
+</body>
+</html>
