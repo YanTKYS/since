@@ -104,6 +104,18 @@
     border-radius:var(--radius-sm);
   }
   .btn-danger-text:hover{ background:var(--danger-soft); }
+  .backup-restore-group{
+    display:flex;
+    align-items:center;
+    gap:2px;
+  }
+  .toolbar-divider{
+    width:1px;
+    height:20px;
+    background:var(--border);
+    margin:0 2px;
+    flex-shrink:0;
+  }
 
   /* ---------- Empty state ---------- */
   .empty-state{
@@ -418,6 +430,7 @@
 <div class="app" id="app">
   <div class="toolbar" id="toolbar"></div>
   <div id="view"></div>
+  <input type="file" id="restoreFileInput" accept=".json,application/json" hidden>
 </div>
 
 <dialog id="itemDialog">
@@ -457,6 +470,10 @@
   "use strict";
 
   var STORAGE_KEY = "isince.data.v1";
+  var BACKUP_APP_NAME = "iSince";
+  var BACKUP_VERSION = 1;
+  var SUPPORTED_BACKUP_VERSIONS = [1];
+  var SUPPORTED_DATA_VERSIONS = [1];
 
   /* ---------------- Data layer ---------------- */
 
@@ -488,8 +505,10 @@
   function saveData(){
     try{
       localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+      return true;
     }catch(e){
       console.error("failed to save data", e);
+      return false;
     }
   }
 
@@ -531,6 +550,19 @@
   function formatDays(n){
     if (Number.isInteger(n)) return n + "日";
     return (Math.round(n * 10) / 10) + "日";
+  }
+
+  function isValidDateStr(s){
+    if (typeof s !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+    var parts = s.split("-");
+    var y = parseInt(parts[0], 10), m = parseInt(parts[1], 10), d = parseInt(parts[2], 10);
+    if (m < 1 || m > 12 || d < 1 || d > 31) return false;
+    var dt = new Date(Date.UTC(y, m - 1, d));
+    return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
+  }
+
+  function pad2(n){
+    return String(n).padStart(2, "0");
   }
 
   /* ---------------- Stats ---------------- */
@@ -577,6 +609,166 @@
     };
   }
 
+  /* ---------------- Backup / Restore ---------------- */
+
+  function totalRecordCount(){
+    return db.items.reduce(function(sum, item){ return sum + item.records.length; }, 0);
+  }
+
+  function isoStringWithOffset(date){
+    var offsetMin = -date.getTimezoneOffset();
+    var sign = offsetMin >= 0 ? "+" : "-";
+    var abs = Math.abs(offsetMin);
+    return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate()) +
+      "T" + pad2(date.getHours()) + ":" + pad2(date.getMinutes()) + ":" + pad2(date.getSeconds()) +
+      sign + pad2(Math.floor(abs / 60)) + ":" + pad2(abs % 60);
+  }
+
+  function backupFilename(date){
+    return "iSince-backup-" + date.getFullYear() + pad2(date.getMonth() + 1) + pad2(date.getDate()) + ".json";
+  }
+
+  function exportBackup(){
+    var now = new Date();
+    var payload = {
+      app: BACKUP_APP_NAME,
+      backupVersion: BACKUP_VERSION,
+      exportedAt: isoStringWithOffset(now),
+      data: {
+        version: db.version || 1,
+        items: db.items
+      }
+    };
+    var json = JSON.stringify(payload, null, 2);
+    var blob = new Blob([json], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = backupFilename(now);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+
+  // Validates a parsed backup object and, when valid, returns a normalized
+  // { version, items } data payload ready to replace the current database.
+  function validateBackup(obj){
+    if (!obj || typeof obj !== "object" || Array.isArray(obj)) return { ok: false, reason: "root" };
+    if (obj.app !== BACKUP_APP_NAME) return { ok: false, reason: "app" };
+    if (typeof obj.backupVersion !== "number" || SUPPORTED_BACKUP_VERSIONS.indexOf(obj.backupVersion) === -1){
+      return { ok: false, reason: "backupVersion" };
+    }
+    var data = obj.data;
+    if (!data || typeof data !== "object" || Array.isArray(data)) return { ok: false, reason: "data" };
+    if (typeof data.version !== "number" || SUPPORTED_DATA_VERSIONS.indexOf(data.version) === -1){
+      return { ok: false, reason: "dataVersion" };
+    }
+    if (!Array.isArray(data.items)) return { ok: false, reason: "items" };
+
+    var items = [];
+    for (var i = 0; i < data.items.length; i++){
+      var item = data.items[i];
+      if (!item || typeof item !== "object" || Array.isArray(item)) return { ok: false, reason: "item" };
+      if (item.id === undefined || item.id === null || item.id === "") return { ok: false, reason: "itemId" };
+      if (typeof item.name !== "string") return { ok: false, reason: "itemName" };
+      if (!Array.isArray(item.records)) return { ok: false, reason: "records" };
+
+      var records = [];
+      for (var j = 0; j < item.records.length; j++){
+        var rec = item.records[j];
+        if (!rec || typeof rec !== "object" || Array.isArray(rec)) return { ok: false, reason: "record" };
+        if (rec.id === undefined || rec.id === null || rec.id === "") return { ok: false, reason: "recordId" };
+        if (!isValidDateStr(rec.date)) return { ok: false, reason: "recordDate" };
+        if (rec.memo !== undefined && rec.memo !== null && typeof rec.memo !== "string") return { ok: false, reason: "recordMemo" };
+        records.push({ id: rec.id, date: rec.date, memo: typeof rec.memo === "string" ? rec.memo : "" });
+      }
+      items.push({ id: item.id, name: item.name, records: records });
+    }
+
+    return { ok: true, data: { version: data.version, items: items } };
+  }
+
+  function restoreErrorMessage(reason){
+    var messages = {
+      parse: "ファイルをJSONとして読み込めませんでした。正しいiSinceのバックアップファイル（.json）を選択してください。",
+      root: "バックアップファイルの形式が正しくありません。",
+      app: "このファイルはiSinceのバックアップファイルではありません。",
+      backupVersion: "このバックアップファイルのバージョンには対応していません。",
+      data: "バックアップファイルにデータが含まれていません。",
+      dataVersion: "このバックアップデータの形式には対応していません。",
+      items: "バックアップデータの項目一覧の形式が正しくありません。",
+      item: "バックアップデータの項目の形式が正しくありません。",
+      itemId: "バックアップデータに項目IDが見つかりません。",
+      itemName: "バックアップデータの項目名の形式が正しくありません。",
+      records: "バックアップデータの記録一覧の形式が正しくありません。",
+      record: "バックアップデータの記録の形式が正しくありません。",
+      recordId: "バックアップデータに記録IDが見つかりません。",
+      recordDate: "バックアップデータの記録の日付が正しくありません。",
+      recordMemo: "バックアップデータの記録メモの形式が正しくありません。"
+    };
+    return "復元に失敗しました。\n" + (messages[reason] || "不明なエラーが発生しました。") +
+      "\n現在のデータは変更されていません。";
+  }
+
+  function triggerRestore(){
+    var input = document.getElementById("restoreFileInput");
+    input.value = ""; // allow re-selecting the same file next time
+    input.click();
+  }
+
+  function handleRestoreFileChange(file){
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      var parsed;
+      try{
+        parsed = JSON.parse(String(reader.result));
+      }catch(err){
+        alert(restoreErrorMessage("parse"));
+        return;
+      }
+      var result = validateBackup(parsed);
+      if (!result.ok){
+        alert(restoreErrorMessage(result.reason));
+        return;
+      }
+      confirmAndRestore(result.data);
+    };
+    reader.onerror = function(){
+      alert("バックアップファイルの読み込みに失敗しました。\n現在のデータは変更されていません。");
+    };
+    reader.readAsText(file);
+  }
+
+  function confirmAndRestore(data){
+    var currentItemCount = db.items.length;
+    var currentRecordCount = totalRecordCount();
+    var msg =
+      "バックアップから復元します。\n\n" +
+      "現在の\n" +
+      currentItemCount + "項目・" + currentRecordCount + "件の記録\n" +
+      "はバックアップの内容に置き換えられます。\n\n" +
+      "この操作は元に戻せません。\n" +
+      "復元前に必要であれば現在のデータをバックアップしてください。";
+    if (!window.confirm(msg)) return;
+    performRestore(data);
+  }
+
+  function performRestore(data){
+    var previous = db;
+    db = { version: data.version, items: data.items };
+    var saved = saveData();
+    if (!saved){
+      db = previous;
+      alert("復元データの保存に失敗しました。ブラウザの空き容量などをご確認のうえ、もう一度お試しください。\n現在のデータは変更されていません。");
+      return;
+    }
+    state.view = "list";
+    state.currentItemId = null;
+    renderApp();
+  }
+
   /* ---------------- Rendering: toolbar ---------------- */
 
   function renderToolbar(){
@@ -596,6 +788,11 @@
       html += '<option value="name_asc"' + (state.sortMode === "name_asc" ? " selected" : "") + '>名前順</option>';
       html += '</select>';
     }
+    html += '<div class="backup-restore-group">';
+    html += '<button type="button" class="btn-text" data-action="backup" title="現在のデータをJSONファイルとして保存します">バックアップ</button>';
+    html += '<button type="button" class="btn-text" data-action="restore" title="JSONファイルから復元します">復元</button>';
+    html += '</div>';
+    html += '<span class="toolbar-divider" aria-hidden="true"></span>';
     html += '<button class="btn btn-primary" data-action="add-item">＋ 項目を追加</button>';
     html += '</div>';
     toolbar.innerHTML = html;
@@ -845,6 +1042,10 @@
 
     if (action === "add-item"){
       openItemDialog("add", null);
+    } else if (action === "backup"){
+      exportBackup();
+    } else if (action === "restore"){
+      triggerRestore();
     } else if (action === "open-detail"){
       state.view = "detail";
       state.currentItemId = id;
@@ -899,6 +1100,8 @@
     if (e.target.id === "sortSelect"){
       state.sortMode = e.target.value;
       renderApp();
+    } else if (e.target.id === "restoreFileInput"){
+      handleRestoreFileChange(e.target.files && e.target.files[0]);
     }
   });
 
