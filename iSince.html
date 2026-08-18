@@ -157,6 +157,20 @@
     font-size:15px;
     font-weight:700;
     margin:0;
+  }
+  /* The card as a whole is clickable for the mouse, but a bare <article> is
+     not reachable by keyboard. The name is a real <button> so Tab + Enter
+     opens the detail view too. */
+  .card-name-btn{
+    display:block;
+    width:100%;
+    padding:0;
+    border:none;
+    background:none;
+    font:inherit;
+    color:inherit;
+    text-align:left;
+    cursor:pointer;
     overflow:hidden;
     text-overflow:ellipsis;
     white-space:nowrap;
@@ -357,11 +371,6 @@
     color:var(--text-faint);
     padding:6px 0;
   }
-  .tl-first-note{
-    font-size:12px;
-    color:var(--text-faint);
-    padding:0 0 4px 30px;
-  }
 
   .danger-zone{
     margin-top:36px;
@@ -516,6 +525,9 @@
       return true;
     }catch(e){
       console.error("failed to save data", e);
+      // Go back to what is actually stored. Otherwise the screen keeps
+      // showing an edit that quietly disappears on the next reload.
+      db = loadData();
       window.alert(
         "データの保存に失敗しました。\n" +
         "直前の操作は保存されていません。\n" +
@@ -791,12 +803,10 @@
   }
 
   function performRestore(data){
-    var previous = db;
     db = { version: data.version, items: data.items };
     if (!saveData()){
-      // saveData already reported the failure; put the old data back so
-      // what is on screen matches what is actually stored.
-      db = previous;
+      // saveData already reported the failure and rolled the data back,
+      // so just redraw what is really stored.
       renderApp();
       return;
     }
@@ -836,17 +846,13 @@
 
   /* ---------------- Rendering: list view ---------------- */
 
-  function sortedItems(){
-    // Work out each item's sort values once up front. Calling computeStats()
-    // from inside a comparator would re-sort that item's records on every
-    // single comparison.
+  // Each item's stats are computed once here and handed to renderCard, so a
+  // list render never re-sorts the same item's records twice. Calling
+  // computeStats() from inside a comparator would redo that work on every
+  // single comparison.
+  function sortedEntries(){
     var entries = db.items.map(function(item){
-      var stats = computeStats(item);
-      return {
-        item: item,
-        elapsedDays: stats.hasRecords ? stats.elapsedDays : null,
-        lastDate: stats.hasRecords ? stats.lastDate : null
-      };
+      return { item: item, stats: computeStats(item) };
     });
 
     function byName(a, b){
@@ -855,32 +861,37 @@
 
     // Items with no records have nothing to sort on, so they go to the end
     // and fall back to name order among themselves.
-    function nullsLast(key, compare){
+    function nullsLast(valueOf, compare){
       return function(a, b){
-        if (a[key] === null && b[key] === null) return byName(a, b);
-        if (a[key] === null) return 1;
-        if (b[key] === null) return -1;
-        return compare(a[key], b[key]);
+        var av = valueOf(a), bv = valueOf(b);
+        if (av === null && bv === null) return byName(a, b);
+        if (av === null) return 1;
+        if (bv === null) return -1;
+        return compare(av, bv);
       };
     }
 
     if (state.sortMode === "name_asc"){
       entries.sort(byName);
     } else if (state.sortMode === "recent_desc"){
-      entries.sort(nullsLast("lastDate", function(a, b){
-        return a < b ? 1 : a > b ? -1 : 0;
-      }));
+      entries.sort(nullsLast(
+        function(e){ return e.stats.hasRecords ? e.stats.lastDate : null; },
+        function(a, b){ return a < b ? 1 : a > b ? -1 : 0; }
+      ));
     } else {
-      entries.sort(nullsLast("elapsedDays", function(a, b){ return b - a; }));
+      entries.sort(nullsLast(
+        function(e){ return e.stats.hasRecords ? e.stats.elapsedDays : null; },
+        function(a, b){ return b - a; }
+      ));
     }
 
-    return entries.map(function(entry){ return entry.item; });
+    return entries;
   }
 
-  function renderCard(item){
-    var stats = computeStats(item);
+  function renderCard(item, stats){
     var html = '<article class="card" data-action="open-detail" data-id="' + item.id + '">';
-    html += '<h3 class="card-name">' + escapeHtml(item.name) + '</h3>';
+    html += '<h3 class="card-name"><button type="button" class="card-name-btn" data-action="open-detail" data-id="' +
+      item.id + '">' + escapeHtml(item.name) + '</button></h3>';
 
     html += '<div class="card-main">';
     if (!stats.hasRecords){
@@ -925,10 +936,9 @@
         '</div>';
       return;
     }
-    var items = sortedItems();
     var html = '<div class="cards">';
-    items.forEach(function(item){
-      html += renderCard(item);
+    sortedEntries().forEach(function(entry){
+      html += renderCard(entry.item, entry.stats);
     });
     html += '</div>';
     view.innerHTML = html;
@@ -972,7 +982,7 @@
 
   function renderDetail(){
     var view = document.getElementById("view");
-    var item = db.items.find(function(i){ return i.id === state.currentItemId; });
+    var item = findItem(state.currentItemId);
     if (!item){
       state.view = "list";
       renderApp();
@@ -1162,7 +1172,10 @@
   byId("app").addEventListener("change", function(e){
     if (e.target.id === "sortSelect"){
       state.sortMode = e.target.value;
-      renderApp();
+      // Only the list depends on the sort mode. Re-rendering the toolbar here
+      // would replace the <select> mid-interaction, dropping keyboard focus
+      // and closing the dropdown after a single arrow-key change.
+      renderList();
     } else if (e.target.id === "restoreFileInput"){
       handleRestoreFileChange(e.target.files && e.target.files[0]);
     }
@@ -1214,6 +1227,18 @@
   /* ---------------- Init ---------------- */
 
   renderApp();
+
+  // Elapsed days are counted from "today", so a tab left open overnight would
+  // keep showing yesterday's numbers. Redraw only when the date actually
+  // changes.
+  var renderedDate = todayStr();
+  setInterval(function(){
+    var today = todayStr();
+    if (today !== renderedDate){
+      renderedDate = today;
+      renderApp();
+    }
+  }, 60000);
 })();
 </script>
 </body>
