@@ -689,8 +689,9 @@
     setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
   }
 
-  // Validates a parsed backup object and, when valid, returns a normalized
-  // { version, items } data payload ready to replace the current database.
+  // On success returns a normalized { version, items } payload, not just a
+  // verdict: the caller replaces the database with this, never with the raw
+  // parsed file.
   function validateBackup(obj){
     if (!obj || typeof obj !== "object" || Array.isArray(obj)) return { ok: false, reason: "root" };
     if (obj.app !== BACKUP_APP_NAME) return { ok: false, reason: "app" };
@@ -846,10 +847,9 @@
 
   /* ---------------- Rendering: list view ---------------- */
 
-  // Each item's stats are computed once here and handed to renderCard, so a
-  // list render never re-sorts the same item's records twice. Calling
-  // computeStats() from inside a comparator would redo that work on every
-  // single comparison.
+  // Stats are computed once per item up front because calling computeStats()
+  // from inside a comparator would re-sort the same records on every
+  // comparison.
   function sortedEntries(){
     var entries = db.items.map(function(item){
       return { item: item, stats: computeStats(item) };
@@ -1065,7 +1065,6 @@
 
   /* ---------------- Dialog helpers ---------------- */
 
-  // item / record are null when adding a new one.
   function openItemDialog(item){
     editingItemId = item ? item.id : null;
     byId("itemDialogTitle").textContent = item ? "項目名を編集" : "項目を追加";
