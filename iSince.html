@@ -6,22 +6,35 @@
 <title>iSince - 前回いつやったか記録</title>
 <style>
   :root{
+    /* Neutrals and brand */
     --bg:#f5f5f3;
     --surface:#ffffff;
     --border:#e2e1dc;
     --border-strong:#cfcec7;
+    --control-border:#8a8982;
     --text:#2a2a26;
-    --text-muted:#7a7972;
-    --text-faint:#a3a29a;
+    --text-muted:#5f5e57;
+    --text-subtle:#6b6a63;
     --accent:#2f6f5e;
+    --accent-hover:#265d4e;
+    --accent-pressed:#1f4d40;
     --accent-soft:#e6efec;
+    --accent-soft-hover:#d9e9e3;
     --warn:#9a5b23;
-    --warn-soft:#f5ece0;
     --danger:#b3432f;
     --danger-soft:#fbeae6;
-    --radius:12px;
-    --radius-sm:8px;
-    --shadow:0 1px 2px rgba(0,0,0,0.04), 0 1px 8px rgba(0,0,0,0.03);
+    /* Spacing scale (4px base) */
+    --space-1:4px;
+    --space-2:8px;
+    --space-3:12px;
+    --space-4:16px;
+    --space-5:20px;
+    --space-6:24px;
+    /* Radius: cards and dialogs / controls */
+    --radius:8px;
+    --radius-sm:6px;
+    --shadow:0 0 2px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.08);
+    --shadow-hover:0 0 2px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.10);
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -35,7 +48,11 @@
   .app{
     max-width:1600px;
     margin:0 auto;
-    padding:20px 32px 80px;
+    padding:var(--space-5) 32px 80px;
+  }
+  :focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
   }
 
   /* ---------- Toolbar ---------- */
@@ -43,20 +60,20 @@
     display:flex;
     align-items:center;
     justify-content:space-between;
-    gap:12px;
+    gap:var(--space-3);
     flex-wrap:wrap;
-    margin-bottom:18px;
+    margin-bottom:var(--space-4);
   }
   .brand{
-    font-size:17px;
+    font-size:18px;
     font-weight:700;
     letter-spacing:0.01em;
-    color:var(--text);
+    margin:0;
   }
   .toolbar-controls{
     display:flex;
     align-items:center;
-    gap:8px;
+    gap:var(--space-2);
     flex-wrap:wrap;
   }
   select, input, textarea, button{
@@ -64,45 +81,43 @@
     font-size:14px;
   }
   select{
-    padding:7px 10px;
+    min-height:32px;
+    padding:4px var(--space-3);
     border-radius:var(--radius-sm);
-    border:1px solid var(--border-strong);
+    border:1px solid var(--control-border);
     background:var(--surface);
     color:var(--text);
   }
   .btn{
-    padding:8px 14px;
+    min-height:32px;
+    padding:4px var(--space-4);
     border-radius:var(--radius-sm);
     border:1px solid var(--border-strong);
     background:var(--surface);
     color:var(--text);
     cursor:pointer;
   }
-  .btn:hover{ border-color:var(--text-faint); }
+  .btn:hover{ background:var(--bg); border-color:var(--control-border); }
   .btn-primary{
     background:var(--accent);
     border-color:var(--accent);
     color:#fff;
     font-weight:600;
   }
-  .btn-primary:hover{ background:#265d4e; }
-  .btn-text{
-    background:none;
-    border:none;
-    color:var(--text-muted);
-    cursor:pointer;
-    padding:6px 8px;
-    border-radius:var(--radius-sm);
-  }
-  .btn-text:hover{ background:var(--border); color:var(--text); }
+  .btn-primary:hover{ background:var(--accent-hover); border-color:var(--accent-hover); }
+  .btn-primary:active{ background:var(--accent-pressed); border-color:var(--accent-pressed); }
+  .btn-text,
   .btn-danger-text{
+    min-height:32px;
     background:none;
     border:none;
-    color:var(--danger);
     cursor:pointer;
-    padding:6px 8px;
+    padding:4px var(--space-2);
     border-radius:var(--radius-sm);
   }
+  .btn-text{ color:var(--text-muted); }
+  .btn-text:hover{ background:var(--border); color:var(--text); }
+  .btn-danger-text{ color:var(--danger); }
   .btn-danger-text:hover{ background:var(--danger-soft); }
   .backup-restore-group{
     display:flex;
@@ -112,7 +127,7 @@
   .toolbar-divider{
     width:1px;
     height:20px;
-    background:var(--border);
+    background:var(--border-strong);
     margin:0 2px;
     flex-shrink:0;
   }
@@ -126,10 +141,10 @@
   .empty-state h2{
     font-size:16px;
     color:var(--text);
-    margin:0 0 12px;
+    margin:0 0 var(--space-3);
   }
   .empty-state p{
-    margin:0 0 24px;
+    margin:0 0 var(--space-6);
     white-space:pre-line;
     font-size:14px;
   }
@@ -137,30 +152,34 @@
   /* ---------- Card grid ---------- */
   .cards{
     display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(270px, 1fr));
+    grid-template-columns:repeat(auto-fill, minmax(min(270px, 100%), 1fr));
     align-items:start;
-    gap:14px;
+    gap:var(--space-3);
   }
   .card{
     background:var(--surface);
     border:1px solid var(--border);
     border-radius:var(--radius);
     box-shadow:var(--shadow);
-    padding:14px 16px;
+    padding:var(--space-3) var(--space-4);
     display:flex;
     flex-direction:column;
-    gap:8px;
+    gap:var(--space-2);
     cursor:pointer;
   }
-  .card:hover{ border-color:var(--border-strong); }
+  .card:hover{ border-color:var(--border-strong); box-shadow:var(--shadow-hover); }
+  /* The whole card opens the detail view for mouse users; keyboard users get
+     the same through the name <button>, so the card shows the focus ring. */
+  .card:has(.card-name-btn:focus-visible){
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+  }
   .card-name{
     font-size:15px;
-    font-weight:700;
+    font-weight:600;
+    line-height:1.4;
     margin:0;
   }
-  /* The card as a whole is clickable for the mouse, but a bare <article> is
-     not reachable by keyboard. The name is a real <button> so Tab + Enter
-     opens the detail view too. */
   .card-name-btn{
     display:block;
     width:100%;
@@ -175,9 +194,13 @@
     text-overflow:ellipsis;
     white-space:nowrap;
   }
+  .card-name-btn:focus-visible{ outline:none; }
+  .card:hover .card-name-btn{ text-decoration:underline; text-underline-offset:3px; }
   .card-main{
-    text-align:center;
-    padding:4px 0 0;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:var(--space-3);
   }
   .elapsed-num{
     font-size:44px;
@@ -194,67 +217,81 @@
   .elapsed-label{
     font-size:12px;
     color:var(--text-muted);
-    margin-top:3px;
+    margin-top:var(--space-1);
   }
   .elapsed-empty{
-    font-size:14px;
-    color:var(--text-faint);
-    padding:6px 0;
+    font-size:13px;
+    color:var(--text-subtle);
   }
   .compare-text{
     font-size:12px;
+    font-weight:600;
     color:var(--warn);
-    background:var(--warn-soft);
-    display:inline-block;
-    padding:3px 9px;
-    border-radius:100px;
-    margin-top:6px;
   }
   .card-meta{
-    font-size:12.5px;
+    margin:0;
+    font-size:12px;
+    line-height:1.5;
     color:var(--text-muted);
     display:flex;
     flex-direction:column;
-    gap:3px;
+    gap:2px;
   }
-  .card-memo{
-    color:var(--text-faint);
+  .card-meta > div{
+    display:flex;
+    gap:var(--space-2);
+    min-width:0;
+  }
+  .card-meta dt{
+    flex:0 0 2.4em;
+    color:var(--text-subtle);
+  }
+  .card-meta dd{
+    margin:0;
+    min-width:0;
+  }
+  .card-meta .card-memo dd{
+    color:var(--text-subtle);
     overflow:hidden;
     text-overflow:ellipsis;
     white-space:nowrap;
-    margin-top:1px;
   }
+  /* Secondary (outline) button: tappable at a glance, but it does not outweigh
+     the elapsed days the way the filled primary button would. */
   .record-btn{
-    margin-top:0;
-    width:100%;
-    padding:8px 10px;
+    flex:none;
+    min-height:32px;
+    padding:4px var(--space-3);
     border-radius:var(--radius-sm);
     border:1px solid var(--accent);
-    background:var(--accent-soft);
+    background:var(--surface);
     color:var(--accent);
+    font-size:13px;
     font-weight:600;
+    white-space:nowrap;
     cursor:pointer;
   }
-  .record-btn:hover{ background:#d9e9e3; }
+  .record-btn:hover{ background:var(--accent-soft); }
+  .record-btn:active{ background:var(--accent-soft-hover); }
 
   /* ---------- Detail view ---------- */
   .detail-header{
     display:flex;
     align-items:flex-start;
     justify-content:space-between;
-    gap:12px;
-    margin-bottom:20px;
+    gap:var(--space-3);
+    margin-bottom:var(--space-5);
     flex-wrap:wrap;
   }
   .detail-title-row{
     display:flex;
     align-items:center;
-    gap:8px;
+    gap:var(--space-2);
     flex-wrap:wrap;
   }
   .detail-title{
     font-size:20px;
-    font-weight:700;
+    font-weight:600;
     margin:0;
   }
   .back-link{
@@ -263,10 +300,11 @@
     color:var(--text-muted);
     cursor:pointer;
     font-size:13px;
-    padding:4px 0;
-    margin-bottom:10px;
+    padding:var(--space-1) var(--space-2);
+    margin:0 0 var(--space-2) calc(var(--space-2) * -1);
+    border-radius:var(--radius-sm);
   }
-  .back-link:hover{ color:var(--text); }
+  .back-link:hover{ color:var(--text); background:var(--border); }
 
   .stat-grid{
     display:grid;
@@ -275,17 +313,18 @@
     background:var(--border);
     border:1px solid var(--border);
     border-radius:var(--radius);
+    box-shadow:var(--shadow);
     overflow:hidden;
-    margin-bottom:24px;
+    margin-bottom:var(--space-6);
   }
   .stat-box{
     background:var(--surface);
-    padding:14px 16px;
+    padding:var(--space-3) var(--space-4);
   }
   .stat-box .stat-label{
-    font-size:11.5px;
+    font-size:12px;
     color:var(--text-muted);
-    margin-bottom:4px;
+    margin-bottom:var(--space-1);
   }
   .stat-box .stat-value{
     font-size:19px;
@@ -294,20 +333,20 @@
   .stat-box.emphasis .stat-value{ color:var(--accent); }
   .stat-note{
     font-size:12.5px;
-    color:var(--text-faint);
-    margin:-12px 0 24px;
+    color:var(--text-muted);
+    margin:-12px 0 var(--space-6);
   }
 
   .section-label{
     font-size:13px;
-    font-weight:700;
+    font-weight:600;
     color:var(--text-muted);
-    margin:0 0 12px;
+    margin:0 0 var(--space-3);
   }
 
   /* ---------- Timeline ---------- */
   .timeline{
-    margin-bottom:8px;
+    margin-bottom:var(--space-2);
   }
   .tl-entry{
     display:flex;
@@ -328,7 +367,7 @@
   }
   .tl-content{
     flex:1;
-    padding:2px 0 16px;
+    padding:2px 0 var(--space-4);
     display:flex;
     align-items:flex-start;
     justify-content:space-between;
@@ -368,13 +407,13 @@
   }
   .tl-gap-text{
     font-size:12.5px;
-    color:var(--text-faint);
+    color:var(--text-subtle);
     padding:6px 0;
   }
 
   .danger-zone{
     margin-top:36px;
-    padding-top:16px;
+    padding-top:var(--space-4);
     border-top:1px solid var(--border);
   }
 
@@ -383,68 +422,80 @@
     border:none;
     border-radius:var(--radius);
     padding:0;
-    box-shadow:0 8px 30px rgba(0,0,0,0.15);
+    color:var(--text);
+    box-shadow:0 0 8px rgba(0,0,0,0.12), 0 16px 32px rgba(0,0,0,0.18);
     width:min(420px, calc(100vw - 40px));
   }
   dialog::backdrop{
     background:rgba(20,20,18,0.35);
   }
   .dialog-body{
-    padding:22px;
+    padding:var(--space-6);
   }
-  .dialog-body h3{
-    margin:0 0 16px;
-    font-size:16px;
+  .dialog-body h2{
+    margin:0 0 var(--space-4);
+    font-size:18px;
+    font-weight:600;
   }
   .field{
-    margin-bottom:14px;
+    margin-bottom:var(--space-4);
   }
   .field label{
     display:block;
-    font-size:12.5px;
+    font-size:13px;
     color:var(--text-muted);
-    margin-bottom:5px;
+    margin-bottom:var(--space-1);
   }
   .field input[type="text"],
   .field input[type="date"],
   .field textarea{
     width:100%;
-    padding:9px 10px;
-    border:1px solid var(--border-strong);
+    padding:6px var(--space-3);
+    border:1px solid var(--control-border);
     border-radius:var(--radius-sm);
     background:var(--surface);
     color:var(--text);
   }
+  .field input:focus-visible,
+  .field textarea:focus-visible{
+    outline:none;
+    border-color:var(--accent);
+    box-shadow:0 0 0 1px var(--accent);
+  }
   .field textarea{
     resize:vertical;
-    min-height:60px;
+    min-height:64px;
   }
   .dialog-actions{
     display:flex;
     justify-content:flex-end;
-    gap:8px;
-    margin-top:18px;
+    gap:var(--space-2);
+    margin-top:var(--space-6);
   }
 
+  @media (pointer:coarse){
+    .btn, .btn-text, .btn-danger-text, .record-btn, select{ min-height:40px; }
+  }
   @media (max-width:640px){
-    .app{ padding:16px 16px 60px; }
+    .app{ padding:var(--space-4) var(--space-4) 60px; }
   }
   @media (max-width:520px){
     .elapsed-num{ font-size:38px; }
     .toolbar{ align-items:flex-start; }
+    .toolbar-divider{ display:none; }
   }
 </style>
 </head>
 <body>
 <div class="app" id="app">
-  <div class="toolbar" id="toolbar"></div>
-  <div id="view"></div>
+  <header class="toolbar" id="toolbar"></header>
+  <main id="view"></main>
   <input type="file" id="restoreFileInput" accept=".json,application/json" hidden>
 </div>
 
-<dialog id="itemDialog">
+<dialog id="itemDialog" aria-labelledby="itemDialogTitle">
   <form class="dialog-body" id="itemForm">
-    <h3 id="itemDialogTitle">項目を追加</h3>
+    <h2 id="itemDialogTitle">項目を追加</h2>
     <div class="field">
       <label for="itemNameInput">項目名</label>
       <input type="text" id="itemNameInput" required maxlength="60" placeholder="例: 散髪">
@@ -456,9 +507,9 @@
   </form>
 </dialog>
 
-<dialog id="recordDialog">
+<dialog id="recordDialog" aria-labelledby="recordDialogTitle">
   <form class="dialog-body" id="recordForm">
-    <h3 id="recordDialogTitle">今回を記録</h3>
+    <h2 id="recordDialogTitle">今回を記録</h2>
     <div class="field">
       <label for="recordDateInput">実施日</label>
       <input type="date" id="recordDateInput" required>
@@ -826,10 +877,10 @@
     }
     var hasItems = db.items.length > 0;
     var html = "";
-    html += '<div class="brand">iSince</div>';
+    html += '<h1 class="brand">iSince</h1>';
     html += '<div class="toolbar-controls">';
     if (hasItems){
-      html += '<select id="sortSelect">';
+      html += '<select id="sortSelect" aria-label="並び替え">';
       html += '<option value="elapsed_desc"' + (state.sortMode === "elapsed_desc" ? " selected" : "") + '>経過日数が長い順</option>';
       html += '<option value="recent_desc"' + (state.sortMode === "recent_desc" ? " selected" : "") + '>最近記録した順</option>';
       html += '<option value="name_asc"' + (state.sortMode === "name_asc" ? " selected" : "") + '>名前順</option>';
@@ -840,7 +891,7 @@
     html += '<button type="button" class="btn-text" data-action="restore" title="JSONファイルから復元します">復元</button>';
     html += '</div>';
     html += '<span class="toolbar-divider" aria-hidden="true"></span>';
-    html += '<button class="btn btn-primary" data-action="add-item">＋ 項目を追加</button>';
+    html += '<button type="button" class="btn btn-primary" data-action="add-item">＋ 項目を追加</button>';
     html += '</div>';
     toolbar.innerHTML = html;
   }
@@ -889,38 +940,42 @@
   }
 
   function renderCard(item, stats){
+    var name = escapeHtml(item.name);
     var html = '<article class="card" data-action="open-detail" data-id="' + item.id + '">';
-    html += '<h3 class="card-name"><button type="button" class="card-name-btn" data-action="open-detail" data-id="' +
-      item.id + '">' + escapeHtml(item.name) + '</button></h3>';
+    html += '<h2 class="card-name"><button type="button" class="card-name-btn" data-action="open-detail" data-id="' +
+      item.id + '">' + name + '</button></h2>';
+
+    var recordBtn = '<button type="button" class="record-btn" data-action="quick-record" data-id="' + item.id +
+      '" aria-label="今回を記録（' + name + '）">＋ 今回を記録</button>';
 
     html += '<div class="card-main">';
     if (!stats.hasRecords){
       html += '<div class="elapsed-empty">記録がありません</div>';
     } else {
-      html += '<div class="elapsed-num">' + stats.elapsedDays + '<span class="unit">日</span></div>';
-      html += '<div class="elapsed-label">経過</div>';
+      html += '<div><div class="elapsed-num">' + stats.elapsedDays + '<span class="unit">日</span></div>';
+      html += '<div class="elapsed-label">経過</div></div>';
+    }
+    html += recordBtn;
+    html += '</div>';
+
+    if (stats.hasRecords){
       if (stats.avg !== null){
         var diff = Math.round(stats.elapsedDays - stats.avg);
         if (diff > 0){
           html += '<div class="compare-text">いつもより' + diff + '日長め</div>';
         }
       }
-    }
-    html += '</div>';
-
-    if (stats.hasRecords){
-      html += '<div class="card-meta">';
-      html += '<div>前回　' + formatDateDisplay(stats.lastDate) + '</div>';
+      html += '<dl class="card-meta">';
+      html += '<div><dt>前回</dt><dd>' + formatDateDisplay(stats.lastDate) + '</dd></div>';
       if (stats.avg !== null){
-        html += '<div>通常　約' + Math.round(stats.avg) + '日間隔</div>';
+        html += '<div><dt>通常</dt><dd>約' + Math.round(stats.avg) + '日間隔</dd></div>';
       }
       if (stats.lastMemo){
-        html += '<div class="card-memo">メモ　' + escapeHtml(stats.lastMemo) + '</div>';
+        html += '<div class="card-memo"><dt>メモ</dt><dd>' + escapeHtml(stats.lastMemo) + '</dd></div>';
       }
-      html += '</div>';
+      html += '</dl>';
     }
 
-    html += '<button class="record-btn" data-action="quick-record" data-id="' + item.id + '">＋ 今回を記録</button>';
     html += '</article>';
     return html;
   }
@@ -932,7 +987,7 @@
         '<div class="empty-state">' +
         '<h2>まだ記録項目がありません</h2>' +
         '<p>「散髪」「洗車」など、\n前回いつ行ったか確認したいものを登録できます。</p>' +
-        '<button class="btn btn-primary" data-action="add-item">最初の項目を追加</button>' +
+        '<button type="button" class="btn btn-primary" data-action="add-item">最初の項目を追加</button>' +
         '</div>';
       return;
     }
@@ -960,8 +1015,8 @@
       }
       html += '</div>';
       html += '<div class="tl-actions">';
-      html += '<button class="btn-text" data-action="edit-record" data-id="' + state.currentItemId + '" data-record-id="' + rec.id + '">編集</button>';
-      html += '<button class="btn-danger-text" data-action="delete-record" data-id="' + state.currentItemId + '" data-record-id="' + rec.id + '">削除</button>';
+      html += '<button type="button" class="btn-text" data-action="edit-record" data-id="' + state.currentItemId + '" data-record-id="' + rec.id + '" aria-label="' + formatDateDisplay(rec.date) + 'の記録を編集">編集</button>';
+      html += '<button type="button" class="btn-danger-text" data-action="delete-record" data-id="' + state.currentItemId + '" data-record-id="' + rec.id + '" aria-label="' + formatDateDisplay(rec.date) + 'の記録を削除">削除</button>';
       html += '</div>';
       html += '</div>'; // tl-content
       html += '</div>'; // tl-entry
@@ -990,13 +1045,13 @@
     }
     var stats = computeStats(item);
 
-    var html = '<button class="back-link" data-action="back">← 一覧に戻る</button>';
+    var html = '<button type="button" class="back-link" data-action="back">← 一覧に戻る</button>';
     html += '<div class="detail-header">';
     html += '<div class="detail-title-row">';
-    html += '<h2 class="detail-title">' + escapeHtml(item.name) + '</h2>';
-    html += '<button class="btn-text" data-action="edit-item" data-id="' + item.id + '">項目名を編集</button>';
+    html += '<h1 class="detail-title">' + escapeHtml(item.name) + '</h1>';
+    html += '<button type="button" class="btn-text" data-action="edit-item" data-id="' + item.id + '">項目名を編集</button>';
     html += '</div>';
-    html += '<button class="btn btn-primary" data-action="quick-record" data-id="' + item.id + '">＋ 今回を記録</button>';
+    html += '<button type="button" class="btn btn-primary" data-action="quick-record" data-id="' + item.id + '">＋ 今回を記録</button>';
     html += '</div>';
 
     if (!stats.hasRecords){
@@ -1031,12 +1086,12 @@
         html += '<p class="stat-note">記録が2件以上になると、間隔の統計が表示されます。</p>';
       }
 
-      html += '<h3 class="section-label">履歴</h3>';
+      html += '<h2 class="section-label">履歴</h2>';
       html += renderTimeline(stats);
     }
 
     html += '<div class="danger-zone">';
-    html += '<button class="btn-danger-text" data-action="delete-item" data-id="' + item.id + '">この項目を削除</button>';
+    html += '<button type="button" class="btn-danger-text" data-action="delete-item" data-id="' + item.id + '">この項目を削除</button>';
     html += '</div>';
 
     view.innerHTML = html;
@@ -1090,16 +1145,31 @@
 
   /* ---------------- Actions ---------------- */
 
+  // Re-rendering replaces the focused element, which would drop keyboard
+  // users back at the top of the page. IDs are restricted to [A-Za-z0-9-]
+  // (see ID_PATTERN), so they are safe inside an attribute selector.
+  function focusSelector(selector){
+    var el = document.querySelector(selector);
+    if (el) el.focus();
+  }
+
+  // The control that opened the open dialog, to focus again after the save
+  // re-renders the screen.
+  var dialogOpener = null;
+
   function openDetail(itemId){
     state.view = "detail";
     state.currentItemId = itemId;
     renderApp();
+    focusSelector('[data-action="back"]');
   }
 
   function backToList(){
+    var leftItemId = state.currentItemId;
     state.view = "list";
     state.currentItemId = null;
     renderApp();
+    if (leftItemId) focusSelector('.card-name-btn[data-id="' + leftItemId + '"]');
   }
 
   function editItemName(itemId){
@@ -1144,6 +1214,12 @@
     var action = el.getAttribute("data-action");
     var id = el.getAttribute("data-id");
     var recordId = el.getAttribute("data-record-id");
+
+    if (action === "add-item" || action === "quick-record" || action === "edit-item" || action === "edit-record"){
+      dialogOpener = '[data-action="' + action + '"]' +
+        (id ? '[data-id="' + id + '"]' : "") +
+        (recordId ? '[data-record-id="' + recordId + '"]' : "");
+    }
 
     if (action === "add-item"){
       openItemDialog(null);
@@ -1197,6 +1273,7 @@
     saveData();
     byId("itemDialog").close();
     renderApp();
+    if (dialogOpener) focusSelector(dialogOpener);
   });
 
   byId("recordForm").addEventListener("submit", function(e){
@@ -1215,6 +1292,7 @@
     saveData();
     byId("recordDialog").close();
     renderApp();
+    if (dialogOpener) focusSelector(dialogOpener);
   });
 
   document.querySelectorAll("[data-close-dialog]").forEach(function(btn){
