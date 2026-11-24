@@ -589,6 +589,7 @@
   html[data-theme="origami"] .dialog-body h2{ font-family:var(--hp-mincho); color:var(--hp-deep); }
   html[data-theme="origami"] .elapsed-num,
   html[data-theme="origami"] .stat-box .stat-value{ font-family:var(--hp-mincho); font-weight:700; }
+  html[data-theme="origami"] .elapsed-num{ color:var(--hp-deep); }
   /* 葡萄色は選択・現在地・主操作の帯に限定する（経過日数などの数字は墨色明朝） */
   html[data-theme="origami"] .stat-box.emphasis .stat-value{ color:var(--hp-deep); }
   html[data-theme="origami"] .section-label{
@@ -619,12 +620,14 @@
     gap:0;
   }
   html[data-theme="origami"] .is-folded .card{
+    display:grid;
+    grid-template-columns:100%;
     grid-template-rows:auto 1fr auto;
     flex:1 1 0;
     min-width:150px;
     margin:0;
     gap:0;
-    padding:calc(var(--hp-tilt) + 10px) 12px 0;
+    padding:calc(var(--hp-tilt) + 10px) 12px 14px;
     background:var(--hp-page-l);
     border:0;
     border-left:1px solid var(--hp-fold);
@@ -636,6 +639,7 @@
   }
   html[data-theme="origami"] .is-folded .card-face-top{
     padding-bottom:8px;
+    min-height:49px;
     border-bottom:1px solid var(--hp-line);
     display:flex;
     flex-direction:column;
@@ -659,7 +663,9 @@
     letter-spacing:.06em;
     color:var(--hp-deep);
   }
-  html[data-theme="origami"] .is-folded .card-main{ flex-direction:column; align-items:stretch; gap:6px; }
+  html[data-theme="origami"] .is-folded .card-main{ flex-direction:column; align-items:stretch; gap:6px; min-height:136px; }
+  html[data-theme="origami"] .is-folded .card-main > .record-btn{ margin-top:auto; }
+  html[data-theme="origami"] .is-folded .card-main > .record-btn{ margin-top:auto; }
   html[data-theme="origami"] .is-folded .elapsed-num{ font-size:36px; }
   html[data-theme="origami"] .card-face-memo{
     font-size:12px;
