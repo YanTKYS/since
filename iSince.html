@@ -2,6 +2,34 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<!--
+  「折本」（folding-book）テーマは、h-prime-ui Skill（YanTKYS/design-skills、version 0.1.0）に
+  由来するデザインを、このファイル向けに独立して実装したものです。Skill由来のCSS・コード・素材を
+  含むため、以下にSkillのMITライセンス全文を添付します（単一ファイルとして配布した場合も
+  この許諾文が添付されます。アプリ全体のライセンス変更ではありません）。
+
+  MIT License
+
+  Copyright (c) 2026 YanTKYS
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>iSince - 前回いつやったか記録</title>
 <style>
@@ -484,6 +512,193 @@
     .toolbar{ align-items:flex-start; }
     .toolbar-divider{ display:none; }
   }
+
+  /* ---------- 折本テーマ（h-prime-ui Skill v0.1.0 由来の独立実装） ----------
+     スコープは <html data-theme="origami"> に限定し、標準テーマへは漏らさない。 */
+  html[data-theme="origami"]{
+    /* 地と頁（tokens.css の値） */
+    --hp-ground:#fbf8ee;
+    --hp-page-r:#e2d4dd;
+    --hp-page-l:#eee5e8;
+    --hp-field:#fffdf6;
+    --hp-ink:#2e2430;
+    --hp-deep:#391e37;
+    --hp-muted:#655362;
+    --hp-grape:#542240;
+    --hp-light:#fbf3f0;
+    --hp-line:#a38a9b;
+    --hp-fold:#c9b7c4;
+    --hp-control-line:#866c82;
+    --hp-section-rule:2px solid var(--hp-deep);
+    --hp-error:#a31f1b;
+    --hp-bar-fill:#6d2c52;
+    --hp-mincho:'BIZ UDPMincho','Hiragino Mincho ProN','Yu Mincho','YuMincho','Noto Serif CJK JP','Noto Serif JP',serif;
+    --hp-gothic:'BIZ UDPGothic','Hiragino Sans','Yu Gothic','Noto Sans CJK JP','Noto Sans JP',Meiryo,sans-serif;
+    --hp-mono:ui-monospace,'SFMono-Regular',Consolas,'Noto Sans Mono CJK JP',monospace;
+    --hp-tilt:12px;
+    --hp-focus-ring:3px solid var(--hp-grape);
+    --hp-focus-offset:3px;
+    --hp-focus-halo:0 0 0 6px rgba(84, 34, 64, 0.18);
+
+    /* 既存の変数を折本の配色へ付け替える（Skill: 既存の仕組みにトークンを取り込む） */
+    --bg:var(--hp-ground);
+    --surface:var(--hp-field);
+    --border:var(--hp-fold);
+    --border-strong:var(--hp-line);
+    --control-border:var(--hp-control-line);
+    --text:var(--hp-ink);
+    --text-muted:var(--hp-muted);
+    --text-subtle:var(--hp-muted);
+    --accent:var(--hp-grape);
+    --accent-hover:#6a2f50;
+    --accent-pressed:#451c35;
+    --accent-soft:#efe1e9;
+    --accent-soft-hover:#e4d2dd;
+    --danger:var(--hp-error);
+    --danger-soft:#f6e0dc;
+    --radius:0;
+    --radius-sm:0;
+    --shadow:none;
+    --shadow-hover:none;
+  }
+  /* 温度系の注意色（いつもより長め）は折本Skillに含まれないため、標準の値を維持する */
+
+  html[data-theme="origami"] body{ font-family:var(--hp-gothic); }
+  html[data-theme="origami"] :is(dialog, select, .btn, .btn-text, .btn-danger-text, .record-btn, .back-link){ border-radius:0; }
+  html[data-theme="origami"] :focus-visible{
+    outline:var(--hp-focus-ring);
+    outline-offset:var(--hp-focus-offset);
+    box-shadow:var(--hp-focus-halo);
+  }
+  html[data-theme="origami"] .btn-primary:focus-visible{
+    outline-color:var(--hp-light);
+    box-shadow:none;
+  }
+  html[data-theme="origami"] .toolbar{ border-bottom:1px solid var(--hp-line); padding-bottom:12px; }
+  html[data-theme="origami"] .brand{ font-family:var(--hp-mincho); color:var(--hp-deep); }
+  html[data-theme="origami"] .toolbar-controls--detail{ justify-content:flex-end; }
+
+  html[data-theme="origami"] .card,
+  html[data-theme="origami"] .stat-box{ border-color:var(--hp-line); }
+  html[data-theme="origami"] .card{ background:var(--hp-page-l); }
+  html[data-theme="origami"] .card:hover{ border-color:var(--hp-control-line); }
+  html[data-theme="origami"] .card:has(.card-name-btn:focus-visible){ outline:var(--hp-focus-ring); outline-offset:var(--hp-focus-offset); box-shadow:var(--hp-focus-halo); }
+  html[data-theme="origami"] .card-name,
+  html[data-theme="origami"] .detail-title,
+  html[data-theme="origami"] .empty-state h2,
+  html[data-theme="origami"] .dialog-body h2{ font-family:var(--hp-mincho); color:var(--hp-deep); }
+  html[data-theme="origami"] .elapsed-num,
+  html[data-theme="origami"] .stat-box .stat-value{ font-family:var(--hp-mincho); font-weight:700; }
+  html[data-theme="origami"] .elapsed-num{ color:var(--hp-deep); }
+  /* 葡萄色は選択・現在地・主操作の帯に限定する（経過日数などの数字は墨色明朝） */
+  html[data-theme="origami"] .stat-box.emphasis .stat-value{ color:var(--hp-deep); }
+  html[data-theme="origami"] .section-label{
+    font-family:var(--hp-mincho);
+    font-size:16px;
+    color:var(--hp-deep);
+    border-top:var(--hp-section-rule);
+    padding-top:14px;
+  }
+  html[data-theme="origami"] .tl-date{ font-family:var(--hp-mono); }
+  html[data-theme="origami"] .tl-dot{ background:var(--hp-bar-fill); }
+  html[data-theme="origami"] .tl-gap .tl-line{ background:var(--hp-line); }
+  html[data-theme="origami"] dialog{ background:var(--hp-field); }
+  html[data-theme="origami"] dialog::backdrop{ background:rgba(57,30,55,0.35); }
+
+  /* 縦組の面（右から左）: DOM先頭＝右端の面＝Tab先頭。order は使わない */
+  html[data-theme="origami"] .fold-dir{
+    margin:0 0 8px;
+    font-size:12.5px;
+    color:var(--hp-muted);
+    text-align:right;
+  }
+  html[data-theme="origami"] .is-folded{
+    display:flex;
+    flex-direction:row-reverse;
+    flex-wrap:wrap;
+    align-items:stretch;
+    gap:0;
+  }
+  html[data-theme="origami"] .is-folded .card{
+    display:grid;
+    grid-template-columns:100%;
+    grid-template-rows:auto 1fr auto;
+    flex:1 1 0;
+    min-width:150px;
+    margin:0;
+    gap:0;
+    padding:calc(var(--hp-tilt) + 10px) 12px 14px;
+    background:var(--hp-page-l);
+    border:0;
+    border-left:1px solid var(--hp-fold);
+    clip-path:polygon(0 0, 100% var(--hp-tilt), 100% 100%, 0 100%);
+  }
+  html[data-theme="origami"] .is-folded .card:nth-child(even){
+    background:var(--hp-page-r);
+    clip-path:polygon(0 var(--hp-tilt), 100% 0, 100% 100%, 0 100%);
+  }
+  html[data-theme="origami"] .is-folded .card-face-top{
+    padding-bottom:8px;
+    min-height:49px;
+    border-bottom:1px solid var(--hp-line);
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  html[data-theme="origami"] .card-face-last{ font-family:var(--hp-mono); font-weight:700; font-size:13px; }
+  html[data-theme="origami"] .card-face-avg{ font-size:12px; color:var(--hp-muted); }
+  html[data-theme="origami"] .is-folded .card-name{
+    display:flex;
+    justify-content:center;
+    padding:14px 0;
+    min-height:230px;
+  }
+  html[data-theme="origami"] .is-folded .card-name-btn{
+    writing-mode:vertical-rl;
+    white-space:normal;
+    text-overflow:clip;
+    font-family:var(--hp-mincho);
+    font-size:24px;
+    font-weight:700;
+    letter-spacing:.06em;
+    color:var(--hp-deep);
+  }
+  html[data-theme="origami"] .is-folded .card-main{ flex-direction:column; align-items:stretch; gap:6px; min-height:136px; }
+  html[data-theme="origami"] .is-folded .card-main > .record-btn{ margin-top:auto; }
+  html[data-theme="origami"] .is-folded .card-main > .record-btn{ margin-top:auto; }
+  html[data-theme="origami"] .is-folded .elapsed-num{ font-size:36px; }
+  html[data-theme="origami"] .card-face-memo{
+    font-size:12px;
+    color:var(--hp-muted);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  /* 傾きの clip-path がフォーカス枠を切らないよう、面内の部品に枠を出す */
+  html[data-theme="origami"] .is-folded .card:has(.card-name-btn:focus-visible){ outline:none; box-shadow:none; }
+  html[data-theme="origami"] .is-folded .card-name-btn:focus-visible{ outline:var(--hp-focus-ring); outline-offset:2px; }
+
+  @media (max-width:1099px){
+    /* 中間の幅: 面を2段に折り返す（上の段の右端が先頭のまま） */
+    html[data-theme="origami"] .is-folded .card{ flex:0 0 25%; }
+  }
+  @media (max-width:759px){
+    html[data-theme="origami"]{ --hp-tilt:8px; }
+    html[data-theme="origami"] .is-folded{ flex-direction:column; flex-wrap:nowrap; }
+    html[data-theme="origami"] .is-folded .card{
+      flex:none;
+      border-left:0;
+      border-top:1px solid var(--hp-fold);
+      clip-path:none;
+      padding:14px;
+    }
+    html[data-theme="origami"] .is-folded .card-name{ min-height:0; padding:2px 0 4px; justify-content:flex-start; }
+    html[data-theme="origami"] .is-folded .card-name-btn{ writing-mode:horizontal-tb; font-size:22px; }
+    html[data-theme="origami"] .fold-dir{ display:none; }
+  }
+  @media (forced-colors: active){
+    html[data-theme="origami"] .is-folded .card{ outline:2px solid Highlight; outline-offset:-2px; }
+  }
 </style>
 </head>
 <body>
@@ -530,6 +745,10 @@
   "use strict";
 
   var STORAGE_KEY = "isince.data.v1";
+  // Theme choice lives in its own key so a restored or edited backup can
+  // never move it, and record data stays untouched by theme switching.
+  var THEME_STORAGE_KEY = "isince.theme";
+  var THEMES = ["standard", "origami"];
   var BACKUP_APP_NAME = "iSince";
   var BACKUP_VERSION = 1;
   var SUPPORTED_BACKUP_VERSIONS = [1];
@@ -588,12 +807,49 @@
     }
   }
 
+  function loadTheme(){
+    var raw;
+    try{
+      raw = localStorage.getItem(THEME_STORAGE_KEY);
+    }catch(e){
+      raw = null;
+    }
+    return THEMES.indexOf(raw) !== -1 ? raw : "standard";
+  }
+
+  // A failed theme save only costs the choice itself, not record data, so
+  // stay quiet instead of alerting over any data write that just failed.
+  function saveTheme(value){
+    try{
+      localStorage.setItem(THEME_STORAGE_KEY, value);
+    }catch(e){}
+  }
+
+  function applyTheme(){
+    document.documentElement.setAttribute("data-theme", state.theme);
+  }
+
+  // Re-renders only the view, not the toolbar: the theme <select> that just
+  // handled the change stays in place, keeping its value and keyboard focus.
+  function setTheme(value){
+    if (THEMES.indexOf(value) === -1) value = "standard";
+    state.theme = value;
+    saveTheme(value);
+    applyTheme();
+    if (state.view === "detail"){
+      renderDetail();
+    } else {
+      renderList();
+    }
+  }
+
   var db = loadData();
 
   var state = {
     view: "list",          // "list" | "detail"
     currentItemId: null,
-    sortMode: "elapsed_desc" // "elapsed_desc" | "recent_desc" | "name_asc"
+    sortMode: "elapsed_desc", // "elapsed_desc" | "recent_desc" | "name_asc"
+    theme: loadTheme()     // "standard" | "origami"
   };
 
   // Which item/record the open dialog is editing (null = adding a new one).
@@ -869,10 +1125,17 @@
 
   /* ---------------- Rendering: toolbar ---------------- */
 
+  function themeSelectHtml(){
+    var html = '<select id="themeSelect" aria-label="テーマ">';
+    html += '<option value="standard"' + (state.theme === "standard" ? " selected" : "") + '>標準テーマ</option>';
+    html += '<option value="origami"' + (state.theme === "origami" ? " selected" : "") + '>折本テーマ</option>';
+    return html + '</select>';
+  }
+
   function renderToolbar(){
     var toolbar = document.getElementById("toolbar");
     if (state.view === "detail"){
-      toolbar.innerHTML = "";
+      toolbar.innerHTML = '<div class="toolbar-controls toolbar-controls--detail">' + themeSelectHtml() + '</div>';
       return;
     }
     var hasItems = db.items.length > 0;
@@ -886,6 +1149,7 @@
       html += '<option value="name_asc"' + (state.sortMode === "name_asc" ? " selected" : "") + '>名前順</option>';
       html += '</select>';
     }
+    html += themeSelectHtml();
     html += '<div class="backup-restore-group">';
     html += '<button type="button" class="btn-text" data-action="backup" title="現在のデータをJSONファイルとして保存します">バックアップ</button>';
     html += '<button type="button" class="btn-text" data-action="restore" title="JSONファイルから復元します">復元</button>';
@@ -980,6 +1244,59 @@
     return html;
   }
 
+  // The folding layout (vertical faces read right to left) is reserved for a
+  // genuinely small list with short names. Anything denser (30 items is hard
+  // in vertical faces) or longer-named falls back to the horizontal cards, so
+  // information density and comparability survive. Single simple rule, no pagination.
+  function isFoldListCandidate(){
+    if (state.theme !== "origami") return false;
+    if (db.items.length > 8) return false;
+    return db.items.every(function(i){ return i.name.length <= 12; });
+  }
+
+  // Same interactions as renderCard (whole card opens the detail, record
+  // button stays independent), shaped as one face of the folding book:
+  // horizontal date/interval strip, vertical name, horizontal numbers.
+  function renderFoldedCard(item, stats){
+    var name = escapeHtml(item.name);
+    var html = '<article class="card card-face" data-action="open-detail" data-id="' + item.id + '">';
+
+    html += '<div class="card-face-top">';
+    if (stats.hasRecords){
+      html += '<div class="card-face-last">' + formatDateDisplay(stats.lastDate) + '</div>';
+      if (stats.avg !== null){
+        html += '<div class="card-face-avg">約' + Math.round(stats.avg) + '日間隔</div>';
+      }
+    } else {
+      html += '<div class="card-face-avg">記録はまだありません</div>';
+    }
+    html += '</div>';
+
+    html += '<h2 class="card-name"><button type="button" class="card-name-btn" data-action="open-detail" data-id="' +
+      item.id + '">' + name + '</button></h2>';
+
+    var recordBtn = '<button type="button" class="record-btn" data-action="quick-record" data-id="' + item.id +
+      '" aria-label="今回を記録（' + name + '）">＋ 今回を記録</button>';
+
+    html += '<div class="card-main">';
+    if (stats.hasRecords){
+      html += '<div><div class="elapsed-num">' + stats.elapsedDays + '<span class="unit">日</span></div>';
+      html += '<div class="elapsed-label">経過</div>';
+      if (stats.avg !== null && Math.round(stats.elapsedDays - stats.avg) > 0){
+        html += '<div class="compare-text">いつもより' + Math.round(stats.elapsedDays - stats.avg) + '日長め</div>';
+      }
+      if (stats.lastMemo){
+        html += '<div class="card-face-memo">' + escapeHtml(stats.lastMemo) + '</div>';
+      }
+      html += '</div>';
+    }
+    html += recordBtn;
+    html += '</div>';
+
+    html += '</article>';
+    return html;
+  }
+
   function renderList(){
     var view = document.getElementById("view");
     if (db.items.length === 0){
@@ -991,9 +1308,14 @@
         '</div>';
       return;
     }
-    var html = '<div class="cards">';
+    var folded = isFoldListCandidate();
+    var html = "";
+    if (folded){
+      html += '<p class="fold-dir" aria-hidden="true">右から左へ読みます ←</p>';
+    }
+    html += '<div class="cards' + (folded ? ' is-folded' : '') + '">';
     sortedEntries().forEach(function(entry){
-      html += renderCard(entry.item, entry.stats);
+      html += folded ? renderFoldedCard(entry.item, entry.stats) : renderCard(entry.item, entry.stats);
     });
     html += '</div>';
     view.innerHTML = html;
@@ -1251,6 +1573,8 @@
       // would replace the <select> mid-interaction, dropping keyboard focus
       // and closing the dropdown after a single arrow-key change.
       renderList();
+    } else if (e.target.id === "themeSelect"){
+      setTheme(e.target.value);
     } else if (e.target.id === "restoreFileInput"){
       handleRestoreFileChange(e.target.files && e.target.files[0]);
     }
@@ -1303,6 +1627,7 @@
 
   /* ---------------- Init ---------------- */
 
+  applyTheme();
   renderApp();
 
   // Elapsed days are counted from "today", so a tab left open overnight would
